@@ -1,0 +1,185 @@
+---
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+                        Regression Models
+
+Introduction: In this Assignment, We are going to use Regression models on our selected data. I have selected the USArrests data with the columns “Murder", "Assault", "UrbanPop" and "Rape".  
+
+Objective
+The main objective of this assignment to use and interpret regression model on the selected data. I will do exploratory data analysis including classical univariate and bivariate analysis.
+
+```{r}
+#importing all the libraries
+library(dplyr)
+library(gapminder)
+library(tidyverse)
+library(ggplot2)
+library(reshape2)
+library(MASS)
+library(Information)
+library(gridExtra)
+library(stringr)
+library(caret)
+library(car)
+library(ggcorrplot)
+library(CombMSC)
+library(hrbrthemes)
+```
+```{r}
+library(help="datasets")
+USArrests
+View(USArrests)
+
+```
+
+Understanding the selected data: Before we begin with our models, It’s best to understand and analyze the variables. Now, I can see that there are no NA values and missed values in my data. Our data contains the number of Murder, Assault, and Rape cases for each of the state in USA in 1973. It also contains the percentage of people living in the urban area.
+
+```{r}
+str(USArrests)
+```
+Now, We can see there are 50 observations that refer to the USA states including 4 Variables i.e. Murder, Assault, UrbanPop and Rape. 
+
+```{r}
+summary(USArrests)
+```
+
+```{r}
+#Box Plot
+par(mfrow=c(1,4))
+for(i in 1:4) {
+    boxplot(USArrests[,i], main=names(USArrests)[i],
+   col = c("purple"))
+}
+```
+BOX PLOT:
+Box plot displays the distribution of data on a five number summary("min",Q1, median, Q3, and "maximum) It also shows the outliers. The two hinges are version of the first and third quartile.
+
+
+```{r}
+#Histogram
+par(mfrow=c(1,4))
+for(i in 1:4) {
+    hist(USArrests[,i], main=names(USArrests)[i],
+   col = c("Blue"))
+  }
+```
+Histogram: We can see the histogram of Rape Arrests in the graphs. As we can see that rape arrests are highest under the category of 15-25 whereas lowest in 42-50.
+
+```{r}
+#scatter plot 1
+
+x <- USArrests$UrbanPop
+y <- USArrests$Rape
+# Plot with main and axis titles
+# Change point shape (pch = 19) and remove frame.
+plot(x, y, main = "Urban Population vs Rape Areests",
+     xlab = "Urban Population percent", ylab = "Rape Arrests",
+     pch = 19, frame = FALSE)
+```
+ 
+```{r}
+#scatter plot 2
+
+x <- USArrests$UrbanPop
+y <- USArrests$Assault
+# Plot with main and axis titles
+# Change point shape (pch = 19) and remove frame.
+plot(x, y, main = "Urban Pop vs Assault Arrests",
+     xlab = "Urban Population Percent", ylab = "Rape Arrests",
+     pch = 19, frame = FALSE)
+```
+```{r}
+#scatter plot 3
+
+x <- USArrests$UrbanPop
+y <- USArrests$Murder
+# Plot with main and axis titles
+# Change point shape (pch = 19) and remove frame.
+plot(x, y, main = "Urban Pop vs Murder Arrests",
+     xlab = "Urban Population Percent", ylab = "Murder Arrests",
+     pch = 19, frame = FALSE)
+```
+Scatter plots shows the relationship between two variables. I have plotted three scatter plots using UrbanPop as explanatory variable and others as response variables. According to the selected data, we can see if the Assault/Murder/Rape variable increases/decreases in a straight line as UrbanPop variable increases/decreases that can provide us the evidence of the relationship between two variable. In our scatter plot 1, 2 & 3, It is difficult to observe if there is any linear relationship between the data. 
+```{r}
+#correlation of data
+correlation_data <- cor(USArrests[,1:4])
+ggcorrplot(correlation_data, method = "circle")
+```
+Finding the correlation between the features or predictors is an important in the model because we can use the correlation to make the predictions. Correlation takes values between 1 to -1.
+We can see in the screenshot above that 3 variables are highly corelated i.e. Murder, Rape nd Assault where as UrbanPop is less correlated. According to our data if murder arrests increase/decrease then the Assault and Rape will also increase/decrease that are showing high correlation with each other. UrbanPop is closer to 0 that shows the weak relationship with variables.
+
+```{r}
+#SIMPLE LINEAR REGRESSION
+# build linear regression model on full data
+linearMod <- lm(Rape ~ UrbanPop, data=USArrests)  
+print(linearMod)
+```
+Now, We have intercept and slope, we can say that every single %age increase in the Urban state population, the number of Rape cases increases by 0.266. 
+Our simple regression model is y=β0 + β1x or y=3.7871 + 0.2662x
+
+
+```{r}
+summary(linearMod)
+```
+Now, We have found the p-value, F-statistic, Residual standard error, Adjusted R square. P-value is very important in analysis, we can check if our linear model is statistically significant or not that generally when the p-value is less than 0.05.
+F-statistic is basically on the ratio of mean squares. The more the value, the better the model. If we check the Mean square error in the model that is large 8.626 means regression line is not precise to the data sets.
+R2 represents the correlation between the variables that is 0.1692. This agrees with the result of MSE as well. The higher the R2, better the model.
+
+
+```{r}
+#MULTIPLE LINEAR REGRESSION
+# build linear regression model on full data
+linearMod1 <- lm(UrbanPop ~ Murder+ Rape+ Assault, data=USArrests)  
+print(linearMod1)
+```
+
+```{r}
+summary(linearMod1)
+```
+Now, We can compare both the models using R2 and MSE and can check which model is better. If we check the Residual standard error, It is more in multiple regression and less in Simple regression. Both the models have p value less than 0.05.
+```{r}
+#Plotiing Q-Q,.....
+plot(linearMod)
+```
+Visualizing model fit is very important aspect to see how the regression works in R. Main feature to recognize is when residuals are normally distributed and mean of residuals are zero.
+
+
+From the residuals vs fitted graph, it is a scatter plot of residuals on the y axis and fitted values (estimated responses) on the x axis. we observe that the plot detects linearity while checking percentage of UrbanPop population with the rape category.Residual variance is constant across urban pop percent, so we can say the residuals are normally distributed.
+
+In Q-Q plot, Residuals are following straight path that shows residuals are normally distributed. 
+
+
+```{r}
+plot(linearMod1)
+```
+
+
+
+```{r}
+#Predictions and Confidence Interval
+newdata <- data.frame(UrbanPop=70)
+confy <- predict(linearMod, newdata, interval="confidence", level = .95)
+confy
+```
+We have found the confidence interval for Rape Arrests for state that has 70 percent urban population. This shows us that 95% of the samples will create mean of rape arrests between 19.85 to 24.98 for a state which has the 70% urban population.
+```{r}
+predy <- predict(linearMod, newdata, interval="predict", level=.95)
+predy
+```
+Prediction interval is wider than the confidence because it must account for both the uncertainty in estimating the population mean, plus the random variation of the individual values. We have again used the 70% urban Population. 
+
+Now, Both the intervals need to be centered at the same point. We will check the accuracy.
+
+```{r}
+confy[1] == predy[1]
+```
+Hence, the both intervals are centered at one point. 
+
+Conclusion: In this Assignment, We built the Linear regression model on the selected dataset USArrests that includes the data of number of rape, murder and Assault arrests in the 50 states of USA. We have seen that UrbanPop shows weak relationship with other variables. 
+
+
+

@@ -1,0 +1,253 @@
+---
+title: "Airquality1"
+author: "GS Kumbhare"
+date: "09/08/2020"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<h1> Airquality </h1>
+
+<h2> Introduction</h2>
+Regression is a statistical method used in finance, investing  and other disciplines that attempt to determine the strength and character of the relationship between one dependent variable to that of other independent variables. Through this assignment we try to find relationship of Ozone layer to that of other independent variables like Solar radiation, Wind speed and Temperature. We study how regression analysis works and learn about dependent and independent variables.
+
+Our dataset consists of Airquality data for the city of New York from the year 1973. The data was collected for a period of 5 month, from the month of may to the month of September. Our variables consists of 
+1. Ozone in PPM
+2. Solar radiation in PPM
+3. Wind speed in Miles per hour
+4. Temperature in Farenheit
+5. Month 
+6. Days of month
+
+<h3> Cleaning</h3>
+
+First we load the dataset from r directory.
+
+```{r}
+datasets::airquality
+```
+
+We first analyse structure of Airquality dataset obtained from r dataset directory.
+
+```{r}
+str(airquality)
+```
+We find that there are number of na values in the structure of 153 observations. Let us calculate number of na values in each variables and filter them accordingly. 
+
+```{r}
+colSums(is.na(airquality))
+```
+
+With the above table it can be seen that number of na values or missing values in our dataset.
+
+Next, we remove na values so that our dataset is ready for next step of 
+
+```{r}
+air= airquality
+#Monthly mean to Ozone
+for (i in 1:nrow(air)){
+  if(is.na(air[i, "Ozone"])){
+    air[i,"Ozone"]<- mean(air[which(air[,"Month"]==air[i,"Month"]),"Ozone"],na.rm = TRUE)
+  }
+}
+#Monthly mean to solar. R
+for (i in 1:nrow(air)){
+  if(is.na(air[i, "Solar.R"])){
+    air[i,"Solar.R"]<- mean(air[which(air[,"Month"]==air[i,"Month"]),"Solar.R"],na.rm = TRUE)
+  }
+}
+summary(air)
+```
+
+We removed na from the dataset. 
+
+<h3> Normalization</h3> 
+
+Our dataset has varying range. Ozone is in scale of PPM, Solar radiation is in range of PPM, Temp is scale of Farenheit, and wind in scale of km/hr.
+As our data set has variying range and we normalize the dataset for better fit. 
+
+
+```{r}
+normal<- function(x){
+  return((x-min(x))/(max(x)-min(x)))
+}
+air<- normal(air)
+str(air)
+```
+
+<h3> Libraries </h3>
+
+We load required libraries for our regression analysis.
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(corrplot)
+```
+<h3> univariate analysis</h3>
+
+Box plot
+```{r}
+par(mfrow=c(1,4))
+for(i in 1:4) {
+    boxplot(air[,i], main=names(air)[i],
+   col = c("purple"))
+}
+```
+1. Solar radiation, wind and Temperature boxplots are almost evenly distributed.
+2. Ozone boxplot is unevenly distributed. There can be va
+Histogram
+
+```{r}
+par(mfrow=c(1,4))
+for(i in 1:4) {
+    hist(air[,i], main=names(air)[i],
+   col = c("orange"))
+}
+```
+
+<h3> Multivariate Analysis</h3>
+
+In multi variate analysis we would be using scatter plot to do multivariate analysis
+our first model is Ozone vs Solar radiation scatter box.
+
+```{r}
+plot(x = air$Ozone, y = air$Solar.R, frame = FALSE,
+      xlab = "Ozone", ylab = "Solar radiation",
+      col =  "#0073C2FF")
+```
+Model 2 
+
+Ozone vs Wind
+
+```{r}
+plot(x = air$Ozone, y = air$Wind, frame = FALSE,
+      xlab = "Ozone", ylab = "Wind",
+       col =  "#0073C2FF")
+```
+
+Model 3
+Ozone vs Temperature 
+
+```{r}
+plot(x = air$Ozone, y = air$Temp, frame = FALSE,
+      xlab = "Ozone", ylab = "Temperature",
+       col =  "#0073C2FF")
+```
+
+<h3> Correlation</h3>
+
+The following table and plot shows correlation between variables.
+
+```{r}
+cor(air[,1:4])
+corrplot(cor(air[,1:4]), method = "pie")
+```
+
+From the above corr plot we can see that Ozone, Wind and Temperature are highly correlated.
+
+
+<h3> Overall Plot </h3>
+
+```{r}
+plot(air[,1:4])
+```
+
+<h2> Regression analysis </h2>
+
+<h3> linear regression </h3>
+
+While progressing through linear regression we will use forward selection Method. Our first model will have Ozone as dependent variable and Solar radiation as independent variable. 
+
+<h3>1. Model 1 Ozone vs Solar radiation Linear regression</h3>
+
+```{r}
+modelLm1<- lm(Ozone~ Solar.R, data = air)
+print(modelLm1)
+par(mfrow = c(2,2))
+plot(modelLm1)
+summary(modelLm1)
+
+```
+
+From the model above we can see that every single percentage increase in Solar radiation our Ozone increases by 0.098.
+
+
+1. Residual is near 0 which means Ozone to Solar radiation residual is symmetrical.
+2. The average Solar radiation is 0.065 Units to that of Ozone.
+3. Every 1 unit increase in Solar radiation the Ozone increases by 0.098 Unit and vice versa.
+4. If we re run the model there can be difference of 0.016 Units of Ozone.
+5. Our p value is significantly small thus we can reject null hypothesis.
+6. Our residual standard error is 0.085. We can say that percentage rate is 130.76%.
+7. R^2 is 0.085 or 8.5% variaance found which is relatively small. Solar radiation is not a strong predictor variable for Ozone.
+
+
+<h3>2. Model 2 Ozone vs Solar radiation</h3>
+
+```{r}
+modelLm2<- lm(Ozone~Wind,data= air)
+print(modelLm2)
+par(mfrow = c(2,2))
+plot(modelLm2)
+summary(modelLm2)
+```
+
+1. Residual is near 0 which means Ozone to Wind residual is symmetrical.
+2. The average wind speed is 0.236 Units to that of Ozone.
+3. Every 1 unit increase in Wind speed the Ozone decreases by 4.43 Unit and vice versa.
+4. If we re run the model there can be diffrence of 0.016 Units of Ozone.
+5. Our p value is significantly small thus we can reject null hypothesis.
+6. Our residual standard error is 0.076. We can say that percentage rate is 32.2%.
+7. R^2 is 0.267 or 26.7% variaance found which is relatively small. This Wind is not a strong predictor    variable for Ozone.
+
+<h3> Model 3 Ozone vs Temperature</h3>
+
+```{r}
+modelLm3<- lm(Ozone~Temp,data= air)
+print(modelLm3)
+par(mfrow = c(2,2))
+plot(modelLm3)
+summary(modelLm3)
+```
+1. Residual is near 0 which means Ozone to Temperature residual is symmetrical.
+2. Every 1 unit increase in Temperature the Ozone Increases by 2.018 Unit and vice versa.
+3. If we re run the model, standard error difference can be of 0.194 Units of Ozone.
+4. Our p value is significantly small thus we can reject null hypothesis.
+5. Our residual standard error is 0.068. We can say that percentage rate is 3.38%.
+6. R^2 is 0.416 or 41.6% variance found which is relatively bigger than the other predictor. This shows that Temperature is a strong predictor variable for Ozone.
+
+
+```{r}
+modelLm4<- lm(Ozone~ Solar.R + Wind +Temp,data= air)
+print(modelLm4)
+par(mfrow = c(2,2))
+plot(modelLm4)
+summary(modelLm4)
+```
+
+In our last model we have all the predictors. The observations made are
+1. R^2 is 0.5007 or 50.07% variance. This shows that all the three predictors together have strong impact on Ozone layer concentration.
+2. Our p value is significanlty small or near 0 which shows that we can reject null hypothesis and accept the model. 
+3. resudual standard error is 0.063 and the percentage rate is 34.5% for the model. The error rate is significantly high.
+4. The model with all the independent variables has high error rate. 
+
+<h3> Prediction</h3>
+
+```{r}
+predy <- predict(modelLm3, air, interval="predict", level=.95) + predict(modelLm1, air, interval="predict", level=.95) + predict(modelLm2, air, interval="predict", level=.95)
+summary(predy)
+
+conf <- predict(modelLm3, air, interval="confidence", level=.95) + predict(modelLm1, air, interval="confidence", level=.95) + predict(modelLm2, air, interval="confidence", level=.95)
+
+summary(conf)
+conf[1]== predy[1]
+```
+
+<h3> Conclusion</h3>
+Through this Analysis we did regression analysis for different predictors of Ozone. We found that Temperature is fittest predictor of Ozone layer. We learned to analyse different predictor with univariate and bivariate analysis. We learned to build histogram and boxplots for variables. We learned to plot correlation plots.
